@@ -275,7 +275,8 @@ var editor = {
 		/* 检查空行 */
 		if (line_now == "") { //是否空行..
 			//空的话,没必要移动鼠标了
-			insertTags("* ", "", default_satrline); //默认的空行
+			//insertTags("* ", "", default_satrline); //默认的空行
+			insertTags("* "); //默认的空行,空的足够空
 			return true;
 		};
 		/* 检查是否标题行 */
@@ -283,7 +284,7 @@ var editor = {
 			//todo:有点提醒就好了
 			return false;
 		};
-		/* 检查是否选中了玩意 */
+		/* 检查是否选中了玩意,并且不是默认的文字(默认替换) */
 		if (this.seltext().length > 0) {
 			return false; //跳掉
 		};
