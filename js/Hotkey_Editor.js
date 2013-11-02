@@ -185,13 +185,18 @@ var editor = {
 		var editor = this.getEditor();
 		return editor.value;
 	},
-	prevlinestart: function() { //上一行开始长度
+	linestartpos: function() { //上一行开始长度
 		var editor = this.getEditor();
 		var line_str = ""; //行的字符串保留
 		var prevlinearr = this.prevtext().split(this.line_patern);
 		var curr_pos = editor.selectionStart; //开始未知
 		var last_line_long = prevlinearr[prevlinearr.length - 1].length; //返回最后一行的长度?
 		return curr_pos - last_line_long; //返回了上一行的截止点
+	},
+	lineendpos: function() { //这一行结束长度
+		var start_pos = this.linestartpos();
+		var line_length = this.currline().length;
+		return start_pos + line_length; //叠加起来,得到了长度,哈
 	},
 	currline: function() { //获得当前行
 		var editor = this.getEditor();
@@ -213,7 +218,7 @@ var editor = {
 	},
 	removecurrline: function() { //清除当前行,位置移到行前面,保留换行
 		var editor = this.getEditor();
-		var mosepos = this.prevlinestart(); //此时记录位置
+		var mosepos = this.linestartpos(); //此时记录位置
 		var line_length = this.currline().length; //此行的长度
 		//移动鼠标,是的有点像模拟操作了
 		this.movmouse(mosepos);
@@ -284,11 +289,13 @@ var editor = {
 		};
 		//记录鼠标属性
 		var mouse_pos = editor.selectionStart; //鼠标位置留存
-		var currline_pos = editor.selectionStart - this.prevlinestart(); //当前行的鼠标位置
+		var currline_pos = editor.selectionStart - this.linestartpos(); //当前行的鼠标位置
 		var star_test = line_now.match(star_patern); //模式匹配它
 		if (star_test) { //如果匹配了模式
-			if (currline_pos >= star_test[1].length) {
-				mouse_pos = mouse_pos - star_test[1].length;//递减
+			if (currline_pos >= star_test[0].length) {
+				mouse_pos = mouse_pos - star_test[0].length; //递减
+			} else {
+				mouse_pos = this.linestartpos(); //由于太少了补上了,回到开头去..
 			};
 			line_now = line_now.replace(star_patern, ""); //鼠标位置的游戏要开始了
 
@@ -300,8 +307,23 @@ var editor = {
 		};
 		this.removecurrline(); //清理行
 		insertTags(line_now); //写入新的
-		movmouse(mouse_pos); //移走鼠标...再见..
-		//todo:等待处理鼠标位置
+		this.movmouse(mouse_pos); //移走鼠标...再见..
+	},
+	anewline: function() { //开始新的一行
+		var editor = this.getEditor();
+		var line_now = this.currline(); //当前行备份
+		var star_line_flag = false; //星星行标记
+		//这时候是神奇的复用的时候了
+		if (star_tool.is_a_star_line(line_now)) {
+			star_line_flag = true; //标记是星星行
+		};
+		this.movmouse(this.lineendpos()); //移到行末尾
+		if (star_line_flag) { //是星星的话...
+			insertTags("\n* "); //释放星星->空的星星,来了哦
+		} else {
+			//插入新的一行
+			insertTags("\n"); //插入换行
+		};
 	},
 	insertkat: function() { //插入分类到屁股后面
 		var default_katname = "见识分类"; //默认分类
@@ -337,6 +359,13 @@ var editor = {
 	is_sel_have_line: function() { //选中的内容是否包含行
 		return this.seltext().match(this.line_patern) != null;
 	},
+};
+/* 星星的细节检查 */
+var star_tool = {
+	is_a_star_line: function(line) {
+		var star_patern = /^\*\s+/; //星星的模式
+		return !!star_patern.test(line);
+	}
 };
 
 /* 行的细节检查 */
@@ -412,7 +441,11 @@ if (wgAction == "edit") { //临时大框架
 		};
 		//绑定列表无序切换
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
-			editor.switchstar(); //插入快速分类
+			editor.switchstar(); //转化星星
+		});
+		//绑定新的一行-a-new-line,佐罗...
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
+			editor.anewline(); //新的一行到来
 		});
 
 	});
