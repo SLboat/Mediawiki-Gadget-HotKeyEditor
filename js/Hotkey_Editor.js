@@ -1,3 +1,10 @@
+/* 森亮号编辑框扩展热键 
+ * 在Mac下需要取消切换窗口的Ctrl+1,Ctrl+2
+ */
+//将其导入到[[MediaWiki:Gadget-HotKeyEditor.js]],让它工作!
+
+if (wgAction == "edit") { //临时大框架
+}
 var editor = {
 	MwEditor: null, //编辑器目的
 	line_patern: /[\r\n]/, //新一行的模式
@@ -72,7 +79,7 @@ var editor = {
 		if (this.seltext().length > 0) {
 			return false; //跳掉
 		};
-		if (title_tool.is_bad_line(line_now)){
+		if (title_tool.is_bad_line(line_now)) {
 			return false; //跳走,有提示就好了
 		}
 		line_now = line_now.replace(/=/g, ""); //全部清理
@@ -111,7 +118,7 @@ var title_tool = {
 	},
 	make_leave: function(level, str) { //制造层次
 		var leave_str = "";
-		if (level==0){
+		if (level == 0) {
 			return str; //直接抛回
 		};
 		for (var i = 0; i < level; i++) {
@@ -124,8 +131,51 @@ var title_tool = {
 		};
 	},
 
-}
+};
 
+
+/* 注册热键开始工作 */
+/* 该死的快捷键都被系统用了 */
+$(function() {
+	//确定绑定辅助键
+	var bind_shift_key;
+	if (navigator.platform == "MacIntel") {
+		bind_shift_key = "ctrl"; //mac ctrl
+	} else {
+		bind_shift_key = "alt"; //windows alt?	
+	};
+
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+1", function() {
+		editor.retitle(1);
+	});
+
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+2", function() {
+		editor.retitle(2);
+	});
+
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+3", function() {
+		editor.retitle(3);
+	});
+
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+4", function() {
+		editor.retitle(4);
+	});
+
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+5", function() {
+		editor.retitle(5);
+	});
+
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+6", function() {
+		editor.retitle(6);
+	});
+
+	//复位咯
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "+0", function() {
+		editor.retitle(0);
+	});
+});
+
+/* 临时载入jQuery热键插件 */
 
 /* 临时载入jQuery热键插件 */
 
@@ -216,36 +266,3 @@ var title_tool = {
 	});
 
 })( jQuery );
-
-/* 注册热键开始工作 */
-/* 该死的快捷键都被系统用了 */
-$(function(){
-	$("#wpTextbox1").bind("keydown","meta+1",function(){
-		editor.retitle(1);
-	});
-
-	$("#wpTextbox1").bind("keydown","meta+2",function(){
-		editor.retitle(2);
-	});
-
-	$("#wpTextbox1").bind("keydown","meta+3",function(){
-		editor.retitle(3);
-	});
-
-	$("#wpTextbox1").bind("keydown","meta+4",function(){
-		editor.retitle(4);
-	});
-
-	$("#wpTextbox1").bind("keydown","meta+5",function(){
-		editor.retitle(5);
-	});
-
-	$("#wpTextbox1").bind("keydown","meta+6",function(){
-		editor.retitle(6);
-	});
-
-	//复位咯
-	$("#wpTextbox1").bind("keydown","meta+0",function(){
-		editor.retitle(0);
-	});
-})
