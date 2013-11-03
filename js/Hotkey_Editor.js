@@ -56,10 +56,12 @@ var init_reg_hotkey = function(jQuery) {
 			145: "scroll",
 			191: "/",
 			224: "meta",
+			186: ";", //森亮号添加
 			188: ",",
 			190: ".",
 			219: "[",
-			221: "]", //SLboat added for this..
+			221: "]",
+			222: "'", //SLboat added for this..
 		},
 
 		shiftNums: {
@@ -516,6 +518,10 @@ if (wgAction == "edit") { //临时大框架
 		//快速的加粗
 		$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
 			editor.switchead(";"); //插入快速分类
+		});
+		//快速的缩进-'只用了一点好了
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "'", function() {
+			editor.switchead(":"); //插入快速分类
 		});
 	});
 };
