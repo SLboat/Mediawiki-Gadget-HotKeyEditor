@@ -1,8 +1,8 @@
 /* 临时载入jQuery热键插件 */
-var reg_hotkey = function(jQuery) {
+var init_reg_hotkey = function(jQuery) {
 
 	jQuery.hotkeys = {
-		version: "0.8",
+		version: "0.8+SLboat_Mod",
 
 		specialKeys: {
 			8: "backspace",
@@ -54,8 +54,12 @@ var reg_hotkey = function(jQuery) {
 			123: "f12",
 			144: "numlock",
 			145: "scroll",
+			188: ",",
+			190: ".",
 			191: "/",
-			224: "meta"
+			224: "meta",
+			219: "[",
+			221: "]", //SLboat added for this..
 		},
 
 		shiftNums: {
@@ -82,18 +86,26 @@ var reg_hotkey = function(jQuery) {
 	};
 
 	function keyHandler(handleObj) {
-		// Only care when a possible input has been specified
-		if (typeof handleObj.data !== "string") {
+
+		var origHandler = handleObj.handler,
+			//use namespace as keys so it works with event delegation as well
+			//will also allow removing listeners of a specific key combination
+			//and support data objects
+			keys = (handleObj.namespace || "").toLowerCase().split(" ");
+		keys = jQuery.map(keys, function(key) {
+			return key.split(".");
+		});
+
+		//no need to modify handler if no keys specified
+		if (keys.length === 1 && (keys[0] === "" || keys[0] === "autocomplete")) {
 			return;
 		}
 
-		var origHandler = handleObj.handler,
-			keys = handleObj.data.toLowerCase().split(" ");
-
 		handleObj.handler = function(event) {
 			// Don't fire in text-accepting inputs that we didn't directly bind to
+			// important to note that $.fn.prop is only available on jquery 1.6+
 			if (this !== event.target && (/textarea|select/i.test(event.target.nodeName) ||
-				event.target.type === "text")) {
+				event.target.type === "text" || $(event.target).prop('contenteditable') == 'true')) {
 				return;
 			}
 
@@ -105,20 +117,20 @@ var reg_hotkey = function(jQuery) {
 
 			// check combinations (alt|ctrl|shift+anything)
 			if (event.altKey && special !== "alt") {
-				modif += "alt+";
+				modif += "alt_";
 			}
 
 			if (event.ctrlKey && special !== "ctrl") {
-				modif += "ctrl+";
+				modif += "ctrl_";
 			}
 
 			// TODO: Need to make sure this works consistently across platforms
 			if (event.metaKey && !event.ctrlKey && special !== "meta") {
-				modif += "meta+";
+				modif += "meta_";
 			}
 
 			if (event.shiftKey && special !== "shift") {
-				modif += "shift+";
+				modif += "shift_";
 			}
 
 			if (special) {
@@ -129,7 +141,7 @@ var reg_hotkey = function(jQuery) {
 				possible[modif + jQuery.hotkeys.shiftNums[character]] = true;
 
 				// "$" can be triggered as "Shift+4" or "Shift+$" or just "$"
-				if (modif === "shift+") {
+				if (modif === "shift_") {
 					possible[jQuery.hotkeys.shiftNums[character]] = true;
 				}
 			}
@@ -396,14 +408,21 @@ if (wgAction == "edit") { //临时大框架
 	/* 注册热键开始工作 */
 	/* 该死的快捷键都被系统用了 */
 	$(function() {
-		reg_hotkey(jQuery); //注册热键扩展
+		var platform;
 		//确定绑定辅助键
 		var bind_shift_key;
 		if (navigator.platform == "MacIntel") {
 			bind_shift_key = "ctrl+"; //mac ctrl
-		} else {
+			platform = "mac";
+		} else if (navigator.platform == "Win32") {
 			bind_shift_key = "alt+"; //windows alt?	
-		};
+			platform = "win";
+		} else {
+			console.log("哈!不支持你这个平台:" + navigator.platform);
+			return false;
+		}
+
+		init_reg_hotkey(jQuery); //注册热键扩展
 
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "1", function() {
 			editor.retitle(1);
@@ -433,21 +452,43 @@ if (wgAction == "edit") { //临时大框架
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "0", function() {
 			editor.retitle(0);
 		});
-
-		//绑定输入分类
+		//mac独享
+		if (platform == "mac") {
+			//绑定输入分类
+			if ($("#char_show_auto").length > 0) {
+				$("#wpTextbox1").bind("keydown", bind_shift_key + "c", function() {
+					editor.insertkat(); //插入快速分类
+				});
+			};
+			//绑定列表无序切换
+			$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
+				editor.switchstar(); //转化星星
+			});
+			//绑定新的一行-a-new-line,佐罗...
+			$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
+				editor.anewline(); //新的一行到来
+			});
+		};
+		/* 绑定额外的增收快捷键 */
+		//绑定列表无序切换-因为shift+8 = *
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "8", function() {
+			editor.switchstar(); //转化星星
+		});
+		//绑定新的一行: / 拿起一把刀前往下一行
+		$("#pt-userpage a").removeAttr("accesskey"); //移除用户的快捷键
+		$("#wpTextbox1").bind("keydown", bind_shift_key + ".", function() {
+			editor.anewline(); //新的一行好了
+		});
+		//绑定列表无序切换-,看起来还没有完
+		$("#wpTextbox1").bind("keydown", bind_shift_key + ",", function() {
+			editor.switchstar(); //转化星星
+		});
+		//快速的来一个分类
 		if ($("#char_show_auto").length > 0) {
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "c", function() {
+			$("#wpTextbox1").bind("keydown", bind_shift_key + "[", function() {
 				editor.insertkat(); //插入快速分类
 			});
 		};
-		//绑定列表无序切换
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
-			editor.switchstar(); //转化星星
-		});
-		//绑定新的一行-a-new-line,佐罗...
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
-			editor.anewline(); //新的一行到来
-		});
 
 	});
 };
