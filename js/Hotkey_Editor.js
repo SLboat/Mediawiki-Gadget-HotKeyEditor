@@ -2,7 +2,7 @@
 var init_reg_hotkey = function(jQuery) {
 
 	jQuery.hotkeys = {
-		version: "0.8+SLboat_Mod",
+		version: "0.8-SLboat_Mod",
 
 		specialKeys: {
 			8: "backspace",
@@ -54,10 +54,10 @@ var init_reg_hotkey = function(jQuery) {
 			123: "f12",
 			144: "numlock",
 			145: "scroll",
-			188: ",",
-			190: ".",
 			191: "/",
 			224: "meta",
+			188: ",",
+			190: ".",
 			219: "[",
 			221: "]", //SLboat added for this..
 		},
@@ -86,26 +86,18 @@ var init_reg_hotkey = function(jQuery) {
 	};
 
 	function keyHandler(handleObj) {
-
-		var origHandler = handleObj.handler,
-			//use namespace as keys so it works with event delegation as well
-			//will also allow removing listeners of a specific key combination
-			//and support data objects
-			keys = (handleObj.namespace || "").toLowerCase().split(" ");
-		keys = jQuery.map(keys, function(key) {
-			return key.split(".");
-		});
-
-		//no need to modify handler if no keys specified
-		if (keys.length === 1 && (keys[0] === "" || keys[0] === "autocomplete")) {
+		// Only care when a possible input has been specified
+		if (typeof handleObj.data !== "string") {
 			return;
 		}
 
+		var origHandler = handleObj.handler,
+			keys = handleObj.data.toLowerCase().split(" ");
+
 		handleObj.handler = function(event) {
 			// Don't fire in text-accepting inputs that we didn't directly bind to
-			// important to note that $.fn.prop is only available on jquery 1.6+
 			if (this !== event.target && (/textarea|select/i.test(event.target.nodeName) ||
-				event.target.type === "text" || $(event.target).prop('contenteditable') == 'true')) {
+				event.target.type === "text")) {
 				return;
 			}
 
@@ -117,20 +109,20 @@ var init_reg_hotkey = function(jQuery) {
 
 			// check combinations (alt|ctrl|shift+anything)
 			if (event.altKey && special !== "alt") {
-				modif += "alt_";
+				modif += "alt+";
 			}
 
 			if (event.ctrlKey && special !== "ctrl") {
-				modif += "ctrl_";
+				modif += "ctrl+";
 			}
 
 			// TODO: Need to make sure this works consistently across platforms
 			if (event.metaKey && !event.ctrlKey && special !== "meta") {
-				modif += "meta_";
+				modif += "meta+";
 			}
 
 			if (event.shiftKey && special !== "shift") {
-				modif += "shift_";
+				modif += "shift+";
 			}
 
 			if (special) {
@@ -141,7 +133,7 @@ var init_reg_hotkey = function(jQuery) {
 				possible[modif + jQuery.hotkeys.shiftNums[character]] = true;
 
 				// "$" can be triggered as "Shift+4" or "Shift+$" or just "$"
-				if (modif === "shift_") {
+				if (modif === "shift+") {
 					possible[jQuery.hotkeys.shiftNums[character]] = true;
 				}
 			}
@@ -254,12 +246,16 @@ var editor = {
 		var empty_line = false;
 		var editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
+		var alardy_done = false; //已经有完全一样的标题
 		if (this.seltext().length > 0) {
 			return false; //跳掉
 		};
 		if (title_tool.is_bad_normal_line(line_now)) {
 			return false; //跳走,有提示就好了
-		}
+		};
+		if (title_tool.alardy_have_leave(line_now) == level) { //检查是否已经达到了一切
+			alardy_done = true; //已经完成了
+		};
 		line_now = line_now.replace(/=/g, ""); //全部清理
 		line_now = $.trim(line_now); //清理空白
 		if (line_now == "") { //空的话
@@ -271,7 +267,9 @@ var editor = {
 			//写空行
 			insertTags(leave_str + " ", " " + leave_str, default_title)
 		} else {
-			line_now = title_tool.make_leave(level, line_now); //制造新的标题
+			if (!alardy_done) { //如果不是一样的,那么就再次补充
+				line_now = title_tool.make_leave(level, line_now); //制造新的标题
+			}
 			insertTags(line_now); //写入内容
 		}
 		return true;
@@ -383,6 +381,16 @@ var star_tool = {
 
 /* 行的细节检查 */
 var title_tool = {
+	alardy_have_leave: function(text) { //返回已有标题数量
+		var title_patern = /^(=+) [^=]+ (=+)$/; //标题模式
+		var title_leave_match = text.match(title_patern); //匹配标题
+		if (title_leave_match) { //如果已经有了标记
+			if (title_leave_match[1].length == title_leave_match[2].length) {
+				return title_leave_match[1].length; //返回任何一个的作为标题
+			};
+		};
+		return 0;
+	},
 	is_bad_normal_line: function(text) { //检查[*],[:],[;],[#]开头的不太可能是标题的行
 		return !!text.match(/^[\*\#:;]/);
 	},
