@@ -275,18 +275,34 @@ var editor = {
 		return true;
 
 	},
-	switchstar: function() { //切换标题星星
+	switchead: function(head) { //切换标题星星
 		//看起来所有这里可以被某种规则来进行替换哩	
-		var default_satrline = "无序小段落";
 		var empty_line = false;
 		var editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
-		var star_patern = /^\*\s+/; //星星的模式
+		var patern_god = { //模式的宏匹配
+			"*": { //星星匹配
+				headstr: "* ",
+				patern: /^\*\s*/
+			},
+			";": { //冒号匹配
+				headstr: ";",
+				patern: /^\;\s*/
+			},
+			":": { //星星匹配
+				headstr: ":",
+				patern: /^\:\s*/
+			},
+		};
+		if (!patern_god[head]) {
+			return false; //不匹配头,退出
+		}
+		var head_patern = patern_god[head].patern; //头部的模式
+		var head_satrt = patern_god[head].headstr;
 		/* 检查空行 */
-		if (line_now == "") { //是否空行..
+		if (line_now.length == 0) { //是否空行..
 			//空的话,没必要移动鼠标了
-			//insertTags("* ", "", default_satrline); //默认的空行
-			insertTags("* "); //默认的空行,空的足够空
+			insertTags(head_satrt); //默认的空行,空的足够空
 			return true;
 		};
 		/* 检查是否标题行 */
@@ -301,19 +317,19 @@ var editor = {
 		//记录鼠标属性
 		var mouse_pos = editor.selectionStart; //鼠标位置留存
 		var currline_pos = editor.selectionStart - this.linestartpos(); //当前行的鼠标位置
-		var star_test = line_now.match(star_patern); //模式匹配它
-		if (star_test) { //如果匹配了模式
-			if (currline_pos >= star_test[0].length) {
-				mouse_pos = mouse_pos - star_test[0].length; //递减
+		var head_test = line_now.match(head_patern); //模式匹配它
+		if (head_test) { //如果匹配了模式
+			if (currline_pos >= head_test[0].length) {
+				mouse_pos = mouse_pos - head_test[0].length; //递减
 			} else {
 				mouse_pos = this.linestartpos(); //由于太少了补上了,回到开头去..
 			};
-			line_now = line_now.replace(star_patern, ""); //鼠标位置的游戏要开始了
+			line_now = line_now.replace(head_patern, ""); //鼠标位置的游戏要开始了
 
 		} else { //非一行
-			line_now = "* " + line_now; //星星做开头咯
+			line_now = head_satrt + line_now; //星星做开头咯
 			if (currline_pos > 0) { //在后面,移走
-				mouse_pos = mouse_pos + 2; //必须叠加鼠标位置
+				mouse_pos = mouse_pos + head_satrt.length; //必须叠加鼠标位置
 			};
 		};
 		this.removecurrline(); //清理行
@@ -470,7 +486,7 @@ if (wgAction == "edit") { //临时大框架
 			};
 			//绑定列表无序切换
 			$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
-				editor.switchstar(); //转化星星
+				editor.switchead("*"); //转化星星
 			});
 			//绑定新的一行-a-new-line,佐罗...
 			$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
@@ -480,7 +496,7 @@ if (wgAction == "edit") { //临时大框架
 		/* 绑定额外的增收快捷键 */
 		//绑定列表无序切换-因为shift+8 = *
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "8", function() {
-			editor.switchstar(); //转化星星
+			editor.switchead("*"); //转化星星
 		});
 		//绑定新的一行: / 拿起一把刀前往下一行
 		$("#pt-userpage a").removeAttr("accesskey"); //移除用户的快捷键
@@ -489,7 +505,7 @@ if (wgAction == "edit") { //临时大框架
 		});
 		//绑定列表无序切换-,看起来还没有完
 		$("#wpTextbox1").bind("keydown", bind_shift_key + ",", function() {
-			editor.switchstar(); //转化星星
+			editor.switchead("*"); //转化星星
 		});
 		//快速的来一个分类
 		if ($("#char_show_auto").length > 0) {
@@ -497,6 +513,9 @@ if (wgAction == "edit") { //临时大框架
 				editor.insertkat(); //插入快速分类
 			});
 		};
-
+		//快速的加粗
+		$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
+			editor.switchead(";"); //插入快速分类
+		});
 	});
 };
