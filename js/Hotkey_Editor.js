@@ -57,8 +57,11 @@ var init_reg_hotkey = function(jQuery) {
 			191: "/",
 			224: "meta",
 			186: ";", //森亮号添加
+			187: "=",
 			188: ",",
+			189: "-",
 			190: ".",
+			192: "`",
 			219: "[",
 			221: "]",
 			222: "'", //SLboat added for this..
@@ -266,11 +269,12 @@ var editor = {
 		this.removecurrline(); //清理行
 		if (empty_line) {
 			var leave_str = title_tool.make_leave(level);
+			var blank_str = ""; //如果需要[== hi ==],则可以赋值入[" "]
 			//写空行
-			insertTags(leave_str + " ", " " + leave_str, default_title)
+			insertTags(leave_str + blank_str, blank_str + leave_str, default_title)
 		} else {
 			if (!alardy_done) { //如果不是一样的,那么就再次补充
-				line_now = title_tool.make_leave(level, line_now); //制造新的标题
+				line_now = title_tool.make_leave(level, line_now, blank_str); //制造新的标题
 			}
 			insertTags(line_now); //写入内容
 		}
@@ -412,7 +416,8 @@ var title_tool = {
 	is_bad_normal_line: function(text) { //检查[*],[:],[;],[#]开头的不太可能是标题的行
 		return !!text.match(/^[\*\#:;]/);
 	},
-	make_leave: function(level, str) { //制造层次
+	make_leave: function(level, str, blank_str) { //制造层次
+		var blank_str = blank_str || ""; //默认空白
 		var leave_str = "";
 		if (level == 0) {
 			return str; //直接抛回
@@ -423,7 +428,7 @@ var title_tool = {
 		if (!str) {
 			return leave_str; //返回标题子串
 		} else {
-			return leave_str + " " + str + " " + leave_str; //返回全内容
+			return leave_str + blank_str + str + blank_str + leave_str; //返回全内容
 		};
 	},
 
@@ -494,6 +499,10 @@ if (wgAction == "edit") { //临时大框架
 			$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
 				editor.anewline(); //新的一行到来
 			});
+			//高亮源码的玩意,符号`[1的左边亲邻]
+			$("#wpTextbox1").bind("keydown", bind_shift_key + "`", function() {
+				$("#source_local a").click(); //点击咯
+			});
 		};
 		/* 绑定额外的增收快捷键 */
 		//绑定列表无序切换-因为shift+8 = *
@@ -515,6 +524,11 @@ if (wgAction == "edit") { //临时大框架
 				editor.insertkat(); //插入快速分类
 			});
 		};
+		//高亮源码的玩意,符号`[1的左边亲邻]
+		$("#ca-protect a").removeAttr("accesskey"); //除去保护键
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "=", function() {
+			$("#source_local a").click(); //点击咯
+		});
 		//快速的加粗
 		$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
 			editor.switchead(";"); //插入快速分类
