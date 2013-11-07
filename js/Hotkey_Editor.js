@@ -365,7 +365,7 @@ var editor = {
 		var katstr = ""; //分类名称
 		var brstr = ""; //前缀,是否需要换行
 		if (lastline != "") {
-			brstr = "\n"; //补上换行
+			brstr = "\n\n"; //补上换行
 		}
 		if ($("#char_show_auto").length > 0 && $("#char_show_auto").css("display") != "none") {
 			katstr = $("#char_show_auto a").text();
