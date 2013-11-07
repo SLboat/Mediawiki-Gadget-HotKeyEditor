@@ -165,6 +165,7 @@ var init_reg_hotkey = function(jQuery) {
  */
 //将其导入到[[MediaWiki:Gadget-HotKeyEditor.js]],让它工作!
 
+//TODO:分离var editor为别的东西,比如curr_editor
 var editor = {
 	MwEditor: null, //编辑器目的
 	line_patern: /[\r\n]/, //新一行的模式
@@ -382,12 +383,13 @@ var editor = {
 		return true;
 
 	},
+	//TODO:这里还完全不工作..
 	is_in_newline: function() { //是否在新行
 		//如果有换行符号那就是了
 		if (this.prevtext().length == 0) {
 			return true; //第一个，通过
 		}
-		return this.nexttext()[this.prevtext().length - 1].search(this.line_patern) > -1;
+		return this.prevtext()[this.prevtext().length - 1].search(this.line_patern) > -1;
 	},
 	is_sel_have_line: function() { //选中的内容是否包含行
 		return this.seltext().match(this.line_patern) != null;
