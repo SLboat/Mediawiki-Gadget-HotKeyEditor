@@ -195,6 +195,10 @@ var editor = {
 		var editor = this.getEditor();
 		return editor.value;
 	},
+	currpos: function() { //当前位置
+		var editor = this.getEditor();
+		return editor.selectionStart; //返回咯
+	},
 	linestartpos: function() { //上一行开始长度
 		var editor = this.getEditor();
 		var line_str = ""; //行的字符串保留
@@ -348,7 +352,8 @@ var editor = {
 		var line_now = this.currline(); //当前行备份
 		var star_line_flag = false; //星星行标记
 		//这时候是神奇的复用的时候了
-		if (star_tool.is_a_star_line(line_now)) {
+		//标题也用星星哦
+		if (star_tool.is_a_star_line(line_now) || title_tool.alardy_have_leave(line_now) > 0) {
 			star_line_flag = true; //标记是星星行
 		};
 		this.movmouse(this.lineendpos()); //移到行末尾
