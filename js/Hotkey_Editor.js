@@ -506,6 +506,10 @@ if (wgAction == "edit") { //临时大框架
 			$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
 				editor.anewline(); //新的一行到来
 			});
+			//额外绑定新的一行,w...we going....z太难按了
+			$("#wpTextbox1").bind("keydown", bind_shift_key + "w", function() {
+				editor.anewline(); //新的一行到来
+			});
 			//高亮源码的玩意,符号`[1的左边亲邻]
 			$("#wpTextbox1").bind("keydown", bind_shift_key + "`", function() {
 				$("#source_local a").click(); //点击咯
