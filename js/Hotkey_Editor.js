@@ -411,7 +411,7 @@ var star_tool = {
 /* 行的细节检查 */
 var title_tool = {
 	alardy_have_leave: function(text) { //返回已有标题数量
-		var title_patern = /^(=+) [^=]+ (=+)$/; //标题模式
+		var title_patern = /^(=+)[^=]+(=+)$/; //标题模式
 		var title_leave_match = text.match(title_patern); //匹配标题
 		if (title_leave_match) { //如果已经有了标记
 			if (title_leave_match[1].length == title_leave_match[2].length) {
