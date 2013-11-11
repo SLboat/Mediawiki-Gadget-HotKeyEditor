@@ -1,165 +1,3 @@
-/* 临时载入jQuery热键插件 */
-var init_reg_hotkey = function(jQuery) {
-
-	jQuery.hotkeys = {
-		version: "0.8-SLboat_Mod",
-
-		specialKeys: {
-			8: "backspace",
-			9: "tab",
-			13: "return",
-			16: "shift",
-			17: "ctrl",
-			18: "alt",
-			19: "pause",
-			20: "capslock",
-			27: "esc",
-			32: "space",
-			33: "pageup",
-			34: "pagedown",
-			35: "end",
-			36: "home",
-			37: "left",
-			38: "up",
-			39: "right",
-			40: "down",
-			45: "insert",
-			46: "del",
-			96: "0",
-			97: "1",
-			98: "2",
-			99: "3",
-			100: "4",
-			101: "5",
-			102: "6",
-			103: "7",
-			104: "8",
-			105: "9",
-			106: "*",
-			107: "+",
-			109: "-",
-			110: ".",
-			111: "/",
-			112: "f1",
-			113: "f2",
-			114: "f3",
-			115: "f4",
-			116: "f5",
-			117: "f6",
-			118: "f7",
-			119: "f8",
-			120: "f9",
-			121: "f10",
-			122: "f11",
-			123: "f12",
-			144: "numlock",
-			145: "scroll",
-			191: "/",
-			224: "meta",
-			186: ";", //森亮号添加
-			187: "=",
-			188: ",",
-			189: "-",
-			190: ".",
-			192: "`",
-			219: "[",
-			221: "]",
-			222: "'", //SLboat added for this..
-		},
-
-		shiftNums: {
-			"`": "~",
-			"1": "!",
-			"2": "@",
-			"3": "#",
-			"4": "$",
-			"5": "%",
-			"6": "^",
-			"7": "&",
-			"8": "*",
-			"9": "(",
-			"0": ")",
-			"-": "_",
-			"=": "+",
-			";": ": ",
-			"'": "\"",
-			",": "<",
-			".": ">",
-			"/": "?",
-			"\\": "|"
-		}
-	};
-
-	function keyHandler(handleObj) {
-		// Only care when a possible input has been specified
-		if (typeof handleObj.data !== "string") {
-			return;
-		}
-
-		var origHandler = handleObj.handler,
-			keys = handleObj.data.toLowerCase().split(" ");
-
-		handleObj.handler = function(event) {
-			// Don't fire in text-accepting inputs that we didn't directly bind to
-			if (this !== event.target && (/textarea|select/i.test(event.target.nodeName) ||
-				event.target.type === "text")) {
-				return;
-			}
-
-			// Keypress represents characters, not special keys
-			var special = event.type !== "keypress" && jQuery.hotkeys.specialKeys[event.which],
-				character = String.fromCharCode(event.which).toLowerCase(),
-				key, modif = "",
-				possible = {};
-
-			// check combinations (alt|ctrl|shift+anything)
-			if (event.altKey && special !== "alt") {
-				modif += "alt+";
-			}
-
-			if (event.ctrlKey && special !== "ctrl") {
-				modif += "ctrl+";
-			}
-
-			// TODO: Need to make sure this works consistently across platforms
-			if (event.metaKey && !event.ctrlKey && special !== "meta") {
-				modif += "meta+";
-			}
-
-			if (event.shiftKey && special !== "shift") {
-				modif += "shift+";
-			}
-
-			if (special) {
-				possible[modif + special] = true;
-
-			} else {
-				possible[modif + character] = true;
-				possible[modif + jQuery.hotkeys.shiftNums[character]] = true;
-
-				// "$" can be triggered as "Shift+4" or "Shift+$" or just "$"
-				if (modif === "shift+") {
-					possible[jQuery.hotkeys.shiftNums[character]] = true;
-				}
-			}
-
-			for (var i = 0, l = keys.length; i < l; i++) {
-				if (possible[keys[i]]) {
-					return origHandler.apply(this, arguments);
-				}
-			}
-		};
-	}
-
-	jQuery.each(["keydown", "keyup", "keypress"], function() {
-		jQuery.event.special[this] = {
-			add: keyHandler
-		};
-	});
-
-};
-/* 临时载入完毕,这里需要严重的移植出去 */
-
 /* 森亮号编辑框扩展热键 
  * 在Mac下需要取消切换窗口的Ctrl+1,Ctrl+2
  */
@@ -247,7 +85,7 @@ var editor = {
 	scrolltoend: function() {
 		var curr_editor = this.getEditor();
 		/* 动画的来历:http://stackoverflow.com/questions/270612/scroll-to-bottom-of-div */
-		$(editor).stop().animate({
+		$(curr_editor).stop().animate({
 			scrollTop: curr_editor.scrollHeight
 		}, 800); //放置一个0.8秒的滚动动画
 	},
@@ -441,112 +279,126 @@ var title_tool = {
 
 };
 
-
-if (wgAction == "edit") { //临时大框架
+/* 绑定热键的细节部分咯 */
+var bind_hotkey = function() { //临时大框架
 	/* 注册热键开始工作 */
 	/* 该死的快捷键都被系统用了 */
-	$(function() {
-		var platform;
-		//确定绑定辅助键
-		var bind_shift_key;
-		if (navigator.platform == "MacIntel") {
-			bind_shift_key = "ctrl+"; //mac ctrl
-			platform = "mac";
-		} else if (navigator.platform == "Win32") {
-			bind_shift_key = "alt+"; //windows alt?	
-			platform = "win";
-		} else {
-			console.log("哈!不支持你这个平台:" + navigator.platform);
-			return false;
-		}
+	var platform;
+	//确定绑定辅助键
+	var bind_shift_key;
+	if (navigator.platform == "MacIntel") {
+		bind_shift_key = "ctrl+"; //mac ctrl
+		platform = "mac";
+	} else if (navigator.platform == "Win32") {
+		bind_shift_key = "alt+"; //windows alt?	
+		platform = "win";
+	} else {
+		console.log("哈!不支持你这个平台:" + navigator.platform);
+		return false;
+	}
 
-		init_reg_hotkey(jQuery); //注册热键扩展
+	/* 有冲突性的键位绑定 */
 
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "1", function() {
-			editor.retitle(1);
-		});
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "1", function() {
+		editor.retitle(1);
+	});
 
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "2", function() {
-			editor.retitle(2);
-		});
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "2", function() {
+		editor.retitle(2);
+	});
 
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "3", function() {
-			editor.retitle(3);
-		});
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "3", function() {
+		editor.retitle(3);
+	});
 
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "4", function() {
-			editor.retitle(4);
-		});
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "4", function() {
+		editor.retitle(4);
+	});
 
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "5", function() {
-			editor.retitle(5);
-		});
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "5", function() {
+		editor.retitle(5);
+	});
 
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "6", function() {
-			editor.retitle(6);
-		});
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "6", function() {
+		editor.retitle(6);
+	});
 
-		//复位咯
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "0", function() {
-			editor.retitle(0);
-		});
-		//mac独享
-		if (platform == "mac") {
-			//绑定输入分类
-			if ($("#char_show_auto").length > 0) {
-				$("#wpTextbox1").bind("keydown", bind_shift_key + "c", function() {
-					editor.insertkat(); //插入快速分类
-				});
-			};
-			//绑定列表无序切换
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
-				editor.switchead("*"); //转化星星
-			});
-			//绑定新的一行-a-new-line,佐罗...
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
-				editor.anewline(); //新的一行到来
-			});
-			//额外绑定新的一行,w...we going....z太难按了
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "w", function() {
-				editor.anewline(); //新的一行到来
-			});
-			//高亮源码的玩意,符号`[1的左边亲邻]
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "`", function() {
-				$("#source_local a").click(); //点击咯
-			});
-		};
-		/* 绑定额外的增收快捷键 */
-		//绑定列表无序切换-因为shift+8 = *
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "8", function() {
-			editor.switchead("*"); //转化星星
-		});
-		//绑定新的一行: / 拿起一把刀前往下一行
-		$("#pt-userpage a").removeAttr("accesskey"); //移除用户的快捷键
-		$("#wpTextbox1").bind("keydown", bind_shift_key + ".", function() {
-			editor.anewline(); //新的一行好了
-		});
-		//绑定列表无序切换-,看起来还没有完
-		$("#wpTextbox1").bind("keydown", bind_shift_key + ",", function() {
-			editor.switchead("*"); //转化星星
-		});
-		//快速的来一个分类
+	//取消标题
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "0", function() {
+		editor.retitle(0);
+	});
+
+	//绑定新的一行: / 拿起一把刀前往下一行
+	$("#pt-userpage a").removeAttr("accesskey"); //移除用户的快捷键
+	$("#wpTextbox1").bind("keydown", bind_shift_key + ".", function() {
+		editor.anewline(); //新的一行好了
+	});
+
+	/* Mac平台下的特殊家伙 */
+	if (platform == "mac") {
+		//绑定输入分类
 		if ($("#char_show_auto").length > 0) {
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "[", function() {
+			$("#wpTextbox1").bind("keydown", bind_shift_key + "c", function() {
 				editor.insertkat(); //插入快速分类
 			});
 		};
+		//绑定列表无序切换
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
+			editor.switchead("*"); //转化星星
+		});
+		//绑定新的一行-a-new-line,佐罗...
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
+			editor.anewline(); //新的一行到来
+		});
+		//额外绑定新的一行,w...we going....z太难按了
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "w", function() {
+			editor.anewline(); //新的一行到来
+		});
 		//高亮源码的玩意,符号`[1的左边亲邻]
-		$("#ca-protect a").removeAttr("accesskey"); //除去保护键
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "=", function() {
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "`", function() {
 			$("#source_local a").click(); //点击咯
 		});
-		//快速的加粗
-		$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
-			editor.switchead(";"); //插入快速分类
+	};
+	/* 为没有多大冲突性的键准备,释放win的ctrl */
+	if (platform == "win") {
+		bind_shift_key = "ctrl+";
+	};
+
+	/* 特别的快捷键,这里多使用了特殊符号,并且处理重复的自带属性 */
+	//TODO: bind_shift_key不该存在了..因为有歧义
+	//绑定列表无序切换-因为shift+8 = *
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "8", function() {
+		editor.switchead("*"); //转化星星
+	});
+
+	//绑定列表无序切换-,看起来还没有完
+	$("#wpTextbox1").bind("keydown", bind_shift_key + ",", function() {
+		editor.switchead("*"); //转化星星
+	});
+	//快速的来一个分类
+	if ($("#char_show_auto").length > 0) {
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "[", function() {
+			editor.insertkat(); //插入快速分类
 		});
-		//快速的缩进-'只用了一点好了
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "'", function() {
-			editor.switchead(":"); //插入快速分类
-		});
+	};
+	//高亮源码的玩意,符号`[1的左边亲邻]
+	$("#ca-protect a").removeAttr("accesskey"); //除去保护键
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "=", function() {
+		$("#source_local a").click(); //点击咯
+	});
+	//快速的加粗
+	$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
+		editor.switchead(";"); //插入快速分类
+	});
+	//快速的缩进-'只用了一点好了...win下看起来不吃香
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "'", function() {
+		editor.switchead(":"); //插入快速分类
 	});
 };
+
+/* 最终的初始化部分 */
+$(function() {
+	if (wgAction == "edit") {
+		mw.loader.using("jquery.hotkeys", bind_hotkey); //编辑模式载入扩展后注入
+	};
+});
