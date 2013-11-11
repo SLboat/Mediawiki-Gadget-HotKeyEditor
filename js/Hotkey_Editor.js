@@ -165,7 +165,7 @@ var init_reg_hotkey = function(jQuery) {
  */
 //将其导入到[[MediaWiki:Gadget-HotKeyEditor.js]],让它工作!
 
-//TODO:分离var editor为别的东西,比如curr_editor
+//NOTE:这里必须不能用RL载入,热键用到了它
 var editor = {
 	MwEditor: null, //编辑器目的
 	line_patern: /[\r\n]/, //新一行的模式
@@ -177,33 +177,33 @@ var editor = {
 		return this.MwEditor; //返回对象
 	},
 	seltext: function() { //选中的文字
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		//没选中的话是空的哦
-		return editor.value.slice(editor.selectionStart, editor.selectionEnd);
+		return curr_editor.value.slice(curr_editor.selectionStart, curr_editor.selectionEnd);
 	},
 	prevtext: function() { //之前的文字
-		var editor = this.getEditor();
-		var startPos = editor.selectionStart;
-		return editor.value.substring(0, startPos);
+		var curr_editor = this.getEditor();
+		var startPos = curr_editor.selectionStart;
+		return curr_editor.value.substring(0, startPos);
 	},
 	nexttext: function() { //之后的文字
-		var editor = this.getEditor();
-		var endPos = editor.selectionEnd;
-		return editor.value.substring(endPos, editor.value.length);
+		var curr_editor = this.getEditor();
+		var endPos = curr_editor.selectionEnd;
+		return curr_editor.value.substring(endPos, curr_editor.value.length);
 	},
 	alltext: function() { //所有文字
-		var editor = this.getEditor();
-		return editor.value;
+		var curr_editor = this.getEditor();
+		return curr_editor.value;
 	},
 	currpos: function() { //当前位置
-		var editor = this.getEditor();
-		return editor.selectionStart; //返回咯
+		var curr_editor = this.getEditor();
+		return curr_editor.selectionStart; //返回咯
 	},
 	linestartpos: function() { //上一行开始长度
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var line_str = ""; //行的字符串保留
 		var prevlinearr = this.prevtext().split(this.line_patern);
-		var curr_pos = editor.selectionStart; //开始未知
+		var curr_pos = curr_editor.selectionStart; //开始未知
 		var last_line_long = prevlinearr[prevlinearr.length - 1].length; //返回最后一行的长度?
 		return curr_pos - last_line_long; //返回了上一行的截止点
 	},
@@ -213,7 +213,7 @@ var editor = {
 		return start_pos + line_length; //叠加起来,得到了长度,哈
 	},
 	currline: function() { //获得当前行
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var line_str = ""; //行的字符串保留
 		var prevlinearr = this.prevtext().split(this.line_patern);
 		var nextlinearr = this.nexttext().split(this.line_patern);
@@ -226,35 +226,35 @@ var editor = {
 		return line_str; //返回出去
 	},
 	lastline: function() { //获得最后一行的内容
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var allline = this.alltext().split(this.line_patern); //所有文字
 		return allline[allline.length - 1]; //即使没有一个的话,那就是唯一的送出
 	},
 	removecurrline: function() { //清除当前行,位置移到行前面,保留换行
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var mosepos = this.linestartpos(); //此时记录位置
 		var line_length = this.currline().length; //此行的长度
 		//移动鼠标,是的有点像模拟操作了
 		this.movmouse(mosepos);
-		editor.value = this.prevtext() + this.nexttext().slice(line_length);
+		curr_editor.value = this.prevtext() + this.nexttext().slice(line_length);
 		this.movmouse(mosepos); //再送回鼠标
 	},
 	movmouse: function(pos) { //移动鼠标到
-		var editor = this.getEditor();
-		editor.selectionStart = pos; //移到一样位置
-		editor.selectionEnd = pos; //移到一样位置
+		var curr_editor = this.getEditor();
+		curr_editor.selectionStart = pos; //移到一样位置
+		curr_editor.selectionEnd = pos; //移到一样位置
 	},
 	scrolltoend: function() {
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		/* 动画的来历:http://stackoverflow.com/questions/270612/scroll-to-bottom-of-div */
 		$(editor).stop().animate({
-			scrollTop: editor.scrollHeight
+			scrollTop: curr_editor.scrollHeight
 		}, 800); //放置一个0.8秒的滚动动画
 	},
 	retitle: function(level) { //重新标题分类
 		var default_title = "标题"; //默认标题
 		var empty_line = false;
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
 		var alardy_done = false; //已经有完全一样的标题
 		if (this.seltext().length > 0) {
@@ -289,7 +289,7 @@ var editor = {
 	switchead: function(head) { //切换标题星星
 		//看起来所有这里可以被某种规则来进行替换哩	
 		var empty_line = false;
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
 		var patern_god = { //模式的宏匹配
 			"*": { //星星匹配
@@ -326,8 +326,8 @@ var editor = {
 			return false; //跳掉
 		};
 		//记录鼠标属性
-		var mouse_pos = editor.selectionStart; //鼠标位置留存
-		var currline_pos = editor.selectionStart - this.linestartpos(); //当前行的鼠标位置
+		var mouse_pos = curr_editor.selectionStart; //鼠标位置留存
+		var currline_pos = curr_editor.selectionStart - this.linestartpos(); //当前行的鼠标位置
 		var head_test = line_now.match(head_patern); //模式匹配它
 		if (head_test) { //如果匹配了模式
 			if (currline_pos >= head_test[0].length) {
@@ -348,7 +348,7 @@ var editor = {
 		this.movmouse(mouse_pos); //移走鼠标...再见..
 	},
 	anewline: function() { //开始新的一行
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
 		var star_line_flag = false; //星星行标记
 		//这时候是神奇的复用的时候了
@@ -366,7 +366,7 @@ var editor = {
 	},
 	insertkat: function() { //插入分类到屁股后面
 		var default_katname = "见识分类"; //默认分类
-		var editor = this.getEditor();
+		var curr_editor = this.getEditor();
 		var lastline = this.lastline();
 		var katstr = ""; //分类名称
 		var brstr = ""; //前缀,是否需要换行
