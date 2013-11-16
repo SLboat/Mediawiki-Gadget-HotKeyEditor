@@ -95,7 +95,8 @@ var editor = {
 		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
 		var alardy_done = false; //已经有完全一样的标题
-		if (this.seltext().length > 0) {
+		var selctext = this.seltext(); //选中文字
+		if (selctext.length > 0 && selctext != default_title) { //没有选择文字,或者选择文字不是默认的内容
 			return false; //跳掉
 		};
 		if (title_tool.is_bad_normal_line(line_now)) {
@@ -108,6 +109,9 @@ var editor = {
 		line_now = $.trim(line_now); //清理空白
 		if (line_now == "") { //空的话
 			empty_line = true;
+		};
+		if (curr_editor.selectionEnd > curr_editor.selectionStart) { //检查是否选中默认标题
+			curr_editor.selectionEnd = curr_editor.selectionStart; //强制指示到选择开头去
 		}
 		this.removecurrline(); //清理行
 		if (empty_line) {
