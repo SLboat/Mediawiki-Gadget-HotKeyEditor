@@ -1,5 +1,7 @@
 /* 森亮号编辑框扩展热键 
  * 在Mac下需要取消切换窗口的Ctrl+1,Ctrl+2
+ * * * * * *
+ * 注意: 这里的优先级非常高的大于git的,所以最新的以这里作为羁绊调入在更新.
  */
 //将其导入到[[MediaWiki:Gadget-HotKeyEditor.js]],让它工作!
 
@@ -102,19 +104,23 @@ var editor = {
 		if (title_tool.is_bad_normal_line(line_now)) {
 			return false; //跳走,有提示就好了
 		};
+		if (curr_editor.selectionEnd > curr_editor.selectionStart) { //检查是否选中默认标题
+			curr_editor.selectionEnd = curr_editor.selectionStart; //强制指示到选择开头去
+			line_now = this.currline(); //重新取得当前内容
+		};
 		if (title_tool.alardy_have_leave(line_now) == level) { //检查是否已经达到了一切
 			alardy_done = true; //已经完成了
 		};
 		line_now = line_now.replace(/=/g, ""); //全部清理
 		line_now = $.trim(line_now); //清理空白
-		if (line_now == "") { //空的话
+		if (line_now == "" || line_now == default_title) { //空的话,或者默认的话
 			empty_line = true;
 		};
-		if (curr_editor.selectionEnd > curr_editor.selectionStart) { //检查是否选中默认标题
-			curr_editor.selectionEnd = curr_editor.selectionStart; //强制指示到选择开头去
-		}
 		this.removecurrline(); //清理行
 		if (empty_line) {
+			if (level == 0) { //如果没有需要标题处理的,跳出一切
+				return false;
+			};
 			var leave_str = title_tool.make_leave(level);
 			var blank_str = ""; //如果需要[== hi ==],则可以赋值入[" "]
 			//写空行
@@ -269,7 +275,11 @@ var title_tool = {
 		var blank_str = blank_str || ""; //默认空白
 		var leave_str = "";
 		if (level == 0) {
-			return str; //直接抛回
+			if (!str) { //无内容抛空
+				return "";
+			} else {
+				return str; //直接抛回
+			}
 		};
 		for (var i = 0; i < level; i++) {
 			leave_str = "=" + leave_str;
@@ -338,6 +348,12 @@ var bind_hotkey = function() { //临时大框架
 		editor.anewline(); //新的一行好了
 	});
 
+	//高亮源码的玩意,符号=,就像是=一个奇怪的玩意
+	$("#ca-protect a").removeAttr("accesskey"); //除去保护键
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "=", function() {
+		$("#source_local a").click(); //点击咯
+	});
+
 	/* Mac平台下的特殊家伙 */
 	if (platform == "mac") {
 		//绑定输入分类
@@ -385,11 +401,6 @@ var bind_hotkey = function() { //临时大框架
 			editor.insertkat(); //插入快速分类
 		});
 	};
-	//高亮源码的玩意,符号`[1的左边亲邻]
-	$("#ca-protect a").removeAttr("accesskey"); //除去保护键
-	$("#wpTextbox1").bind("keydown", bind_shift_key + "=", function() {
-		$("#source_local a").click(); //点击咯
-	});
 	//快速的加粗
 	$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
 		editor.switchead(";"); //插入快速分类
