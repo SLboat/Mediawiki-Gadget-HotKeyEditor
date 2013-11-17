@@ -367,7 +367,7 @@ var bind_hotkey = function() { //临时大框架
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
 			editor.switchead("*"); //转化星星
 		});
-		//绑定新的一行-a-new-line,佐罗...
+		//@待遗弃→ 绑定新的一行-a-new-line,佐罗...
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "z", function() {
 			editor.anewline(); //新的一行到来
 		});
@@ -391,12 +391,12 @@ var bind_hotkey = function() { //临时大框架
 
 	/* 特别的快捷键,这里多使用了特殊符号,并且处理重复的自带属性 */
 	//TODO: bind_shift_key不该存在了..因为有歧义
-	//绑定列表无序切换-因为shift+8 = *
+	//@待遗弃→绑定列表无序切换-因为shift+8 = *
 	$("#wpTextbox1").bind("keydown", bind_shift_key + "8", function() {
 		editor.switchead("*"); //转化星星
 	});
 
-	//绑定列表无序切换-,看起来还没有完
+	//@待遗弃→绑定列表无序切换-,看起来还没有完
 	$("#wpTextbox1").bind("keydown", bind_shift_key + ",", function() {
 		editor.switchead("*"); //转化星星
 	});
@@ -414,7 +414,7 @@ var bind_hotkey = function() { //临时大框架
 	$("#wpTextbox1").bind("keydown", bind_shift_key + "shift+;", function() {
 		editor.switchead(":"); //插入快速分类
 	});
-	//快速的缩进-'只用了一点好了...win下看起来不吃香
+	//@待遗弃→快速的缩进-'只用了一点好了...win下看起来不吃香
 	$("#wpTextbox1").bind("keydown", bind_shift_key + "'", function() {
 		editor.switchead(":"); //插入快速分类
 	});
