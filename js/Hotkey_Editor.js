@@ -195,13 +195,14 @@ var editor = {
 		insertTags(line_now); //写入新的
 		this.movmouse(mouse_pos); //移走鼠标...再见..
 	},
-	anewline: function() { //开始新的一行
+	anewline: function(no_star) { //开始新的一行
 		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
 		var star_line_flag = false; //星星行标记
+		var no_star = no_star || false; //不要星星-强制不要
 		//这时候是神奇的复用的时候了
 		//标题也用星星哦
-		if (star_tool.is_a_star_line(line_now) || title_tool.alardy_have_leave(line_now) > 0) {
+		if (star_tool.is_a_star_line(line_now) || title_tool.alardy_have_leave(line_now) > 0 && !no_star) {
 			star_line_flag = true; //标记是星星行
 		};
 		this.movmouse(this.lineendpos()); //移到行末尾
@@ -373,6 +374,10 @@ var bind_hotkey = function() { //临时大框架
 		//额外绑定新的一行,w...we going....z太难按了
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "w", function() {
 			editor.anewline(); //新的一行到来
+		});
+		//新的一行,但是不要星星
+		$("#wpTextbox1").bind("keydown", bind_shift_key + "shift+w", function() {
+			editor.anewline(true); //新的一行到来
 		});
 		//高亮源码的玩意,符号`[1的左边亲邻]
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "`", function() {
