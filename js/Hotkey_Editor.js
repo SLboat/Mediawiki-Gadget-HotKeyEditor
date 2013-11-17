@@ -405,6 +405,10 @@ var bind_hotkey = function() { //临时大框架
 	$("#wpTextbox1").bind("keydown", bind_shift_key + ";", function() {
 		editor.switchead(";"); //插入快速分类
 	});
+	//加上shift后,它可以缩进了!
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "shift+;", function() {
+		editor.switchead(":"); //插入快速分类
+	});
 	//快速的缩进-'只用了一点好了...win下看起来不吃香
 	$("#wpTextbox1").bind("keydown", bind_shift_key + "'", function() {
 		editor.switchead(":"); //插入快速分类
