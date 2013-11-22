@@ -349,20 +349,25 @@ var bind_hotkey = function() { //临时大框架
 		editor.anewline(); //新的一行好了
 	});
 
+	/* 自动源码的三合一玩意 */
 	//高亮源码的玩意,符号=,就像是=一个奇怪的玩意
 	$("#ca-protect a").removeAttr("accesskey"); //除去保护键
 	$("#wpTextbox1").bind("keydown", bind_shift_key + "=", function() {
 		$("#source_local a").click(); //点击咯
 	});
 
+	//本地源码换个记录..
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "shift+=", function() {
+		$("#local_source_change").click(); //点击咯
+	});
+
+	//自动高亮源码,这里是-,就是没有=那么自己去层叠起来
+	$("#wpTextbox1").bind("keydown", bind_shift_key + "-", function() {
+		$("#source_auto a").click(); //点击咯
+	});
+
 	/* Mac平台下的特殊家伙 */
 	if (platform == "mac") {
-		//绑定输入分类
-		if ($("#char_show_auto").length > 0) {
-			$("#wpTextbox1").bind("keydown", bind_shift_key + "c", function() {
-				editor.insertkat(); //插入快速分类
-			});
-		};
 		//绑定列表无序切换
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "s", function() {
 			editor.switchead("*"); //转化星星
