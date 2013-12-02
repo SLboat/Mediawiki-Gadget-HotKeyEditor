@@ -96,10 +96,16 @@ var editor = {
 		var empty_line = false;
 		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
-		var alardy_done = false; //已经有完全一样的标题
+		var alardy_done = false,
+			alardy_done_clean_me = false; //已经有完全一样的标题
 		var selctext = this.seltext(); //选中文字
 		if (selctext.length > 0 && selctext != default_title) { //没有选择文字,或者选择文字不是默认的内容
 			return false; //跳掉
+		};
+		/* 如果只是个空星星 */
+		if (line_now.match(/^\*\s*$/)) { //只有一行,别指望换行
+			line_now = ""; //让其变成0...啥都没有
+			var selctext = "";
 		};
 		if (title_tool.is_bad_normal_line(line_now)) {
 			return false; //跳走,有提示就好了
@@ -109,7 +115,11 @@ var editor = {
 			line_now = this.currline(); //重新取得当前内容
 		};
 		if (title_tool.alardy_have_leave(line_now) == level) { //检查是否已经达到了一切
-			alardy_done = true; //已经完成了
+			if (selctext == default_title) {
+				alardy_done_clean_me = true; //清空这行
+			} else {
+				alardy_done = true; //重新整理这一行...至少试着...
+			};
 		};
 		line_now = line_now.replace(/=/g, ""); //全部清理
 		line_now = $.trim(line_now); //清理空白
@@ -118,7 +128,7 @@ var editor = {
 		};
 		this.removecurrline(); //清理行
 		if (empty_line) {
-			if (level == 0) { //如果没有需要标题处理的,跳出一切
+			if (level == 0 || alardy_done_clean_me) { //如果没有需要标题处理的,跳出一切
 				return false;
 			};
 			var leave_str = title_tool.make_leave(level);
@@ -130,7 +140,7 @@ var editor = {
 				line_now = title_tool.make_leave(level, line_now, blank_str); //制造新的标题
 			}
 			insertTags(line_now); //写入内容
-		}
+		};
 		return true;
 
 	},
@@ -142,7 +152,7 @@ var editor = {
 		var patern_god = { //模式的宏匹配
 			"*": { //星星匹配
 				headstr: "* ",
-				patern: /^\*\s*/
+				patern: /^\*\s*/, //[*]可以用,也可以没..
 			},
 			";": { //冒号匹配
 				headstr: ";",
@@ -165,9 +175,9 @@ var editor = {
 			return true;
 		};
 		/* 检查是否标题行 */
-		if (line_now.match(/^=/)) { //检查是不是标题开头
-			//todo:有点提醒就好了
-			return false;
+		if (title_tool.alardy_have_leave(line_now) > 0) {
+			insertTags("\n" + head_satrt); //新的一行加上对应的符号
+			return true;
 		};
 		/* 检查是否选中了玩意,并且不是默认的文字(默认替换) */
 		if (this.seltext().length > 0) {
@@ -177,7 +187,7 @@ var editor = {
 		var mouse_pos = curr_editor.selectionStart; //鼠标位置留存
 		var currline_pos = curr_editor.selectionStart - this.linestartpos(); //当前行的鼠标位置
 		var head_test = line_now.match(head_patern); //模式匹配它
-		if (head_test) { //如果匹配了模式
+		if (head_test) { //如果匹配了模式,切换状态
 			if (currline_pos >= head_test[0].length) {
 				mouse_pos = mouse_pos - head_test[0].length; //递减
 			} else {
@@ -185,8 +195,8 @@ var editor = {
 			};
 			line_now = line_now.replace(head_patern, ""); //鼠标位置的游戏要开始了
 
-		} else { //非一行
-			line_now = head_satrt + line_now; //星星做开头咯
+		} else { //没有匹配模式,制造新的状态
+			line_now = head_satrt + line_now; //是这样的开头
 			if (currline_pos > 0) { //在后面,移走
 				mouse_pos = mouse_pos + head_satrt.length; //必须叠加鼠标位置
 			};
@@ -195,14 +205,13 @@ var editor = {
 		insertTags(line_now); //写入新的
 		this.movmouse(mouse_pos); //移走鼠标...再见..
 	},
-	anewline: function(no_star) { //开始新的一行
+	anewline: function() { //开始新的一行
 		var curr_editor = this.getEditor();
 		var line_now = this.currline(); //当前行备份
 		var star_line_flag = false; //星星行标记
-		var no_star = no_star || false; //不要星星-强制不要
 		//这时候是神奇的复用的时候了
 		//标题也用星星哦
-		if (star_tool.is_a_star_line(line_now) || title_tool.alardy_have_leave(line_now) > 0 && !no_star) {
+		if (star_tool.is_a_star_line(line_now)) {
 			star_line_flag = true; //标记是星星行
 		};
 		this.movmouse(this.lineendpos()); //移到行末尾
@@ -379,10 +388,6 @@ var bind_hotkey = function() { //临时大框架
 		//额外绑定新的一行,w...we going....z太难按了
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "w", function() {
 			editor.anewline(); //新的一行到来
-		});
-		//新的一行,但是不要星星
-		$("#wpTextbox1").bind("keydown", bind_shift_key + "shift+w", function() {
-			editor.anewline(true); //新的一行到来
 		});
 		//高亮源码的玩意,符号`[1的左边亲邻]
 		$("#wpTextbox1").bind("keydown", bind_shift_key + "`", function() {
