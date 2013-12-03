@@ -225,25 +225,36 @@ var editor = {
 	},
 	insertkat: function() { //插入分类到屁股后面
 		var default_katname = "见识分类"; //默认分类
+		var kat_Patern = /\[\[分类:(.+)\]\]/; //分类模式
+		var footer_Patern = /\{\{脚注\}\}\n$/; //脚注模式->仅脚注模式
 		var curr_editor = this.getEditor();
 		var lastline = this.lastline();
 		var katstr = ""; //分类名称
 		var brstr = ""; //前缀,是否需要换行
-		if (lastline != "") {
-			brstr = "\n\n"; //补上换行
-		}
+
+		//有趣的逻辑推理:http://see.sl088.com/wiki/%E9%80%BB%E8%BE%91/NOT
+		if (lastline.match(kat_Patern)) {
+			brstr = "\n"; //同样分类,换一行好了
+		} else if (this.alltext().match(/\n\n$/)) { //至少有两个空行,啥也不做
+			//todo: 清理最后一行的空白?
+			brstr = "";
+		} else if (this.alltext().match(/\n$/)) {
+			brstr = "\n"; //有一个了,只加上一个
+		} else {
+			brstr = "\n\n"; //啥也没有加上两个
+		};
+
 		if ($("#char_show_auto").length > 0 && $("#char_show_auto").css("display") != "none") {
-			katstr = $("#char_show_auto a").text();
-			this.movmouse(this.alltext().length); //移到末尾
-			//TODO: 页面也滚动到底部?
-			this.scrolltoend(); //滚动到最后
-			insertTags(brstr, "", katstr);
+			katstr = $("#char_show_auto a").text().replace(kat_Patern, "$1");
 		} else {
 			katstr = "见识分类"; //默认分类	
-			this.movmouse(this.alltext().length); //移到末尾
-			this.scrolltoend(); //滚动到最后
-			insertTags(brstr + "[[分类:", "]]", katstr); //选中分类名字
 		};
+
+		/* 执行插入 */
+		this.movmouse(this.alltext().length); //移到末尾
+		this.scrolltoend(); //滚动到最后
+		insertTags(brstr + "[[分类:", "]]", katstr); //选中分类名字
+
 		return true;
 
 	},
