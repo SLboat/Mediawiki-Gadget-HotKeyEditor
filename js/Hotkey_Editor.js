@@ -176,6 +176,7 @@ var editor = {
 		};
 		/* 检查是否标题行 */
 		if (title_tool.alardy_have_leave(line_now) > 0) {
+			this.movmouse(this.lineendpos()); //移到行末尾
 			insertTags("\n" + head_satrt); //新的一行加上对应的符号
 			return true;
 		};
